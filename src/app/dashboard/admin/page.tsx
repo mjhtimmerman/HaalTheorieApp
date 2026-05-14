@@ -1,11 +1,13 @@
-import Scorecard from "@/components/Scorecard"
-import TrafficSplit from "@/components/TrafficSplit"
-import UitgaveOmzet from "@/components/UitgaveOmzet"
-import SocialFunnel from "@/components/SocialFunnel"
-import { getDashboardData } from "@/lib/dashboard-data"
-import TimeSelector from "@/components/TimeSelector"
+import Scorecard from "@/components/Scorecard";
+import TrafficSplit from "@/components/TrafficSplit";
+import UitgaveOmzet from "@/components/UitgaveOmzet";
+import SocialFunnel from "@/components/SocialFunnel";
+import { getDashboardData } from "@/lib/dashboard-data";
+import TimeSelector from "@/components/TimeSelector";
 
-type DashboardRange = "week" | "month" | "year"
+export const dynamic = "force-dynamic";
+
+type DashboardRange = "week" | "month" | "year";
 
 type AdminPageProps = {
   searchParams: {
@@ -14,7 +16,7 @@ type AdminPageProps = {
 };
 
 const AdminPage = async ({ searchParams }: AdminPageProps) => {
-  const params = await searchParams
+  const params = await searchParams;
   const activeRange = params.range ?? "week";
   const dashboardData = await getDashboardData(activeRange);
 
@@ -25,10 +27,26 @@ const AdminPage = async ({ searchParams }: AdminPageProps) => {
 
       {/* Scorecards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
-        <Scorecard type="Omzet" value={dashboardData.totalRevenue} percentage={dashboardData.revenuePercentageChange}/>
+        <Scorecard 
+        type="Omzet" 
+        value={dashboardData.totalRevenue} 
+        percentage={dashboardData.revenuePercentageChange}
+        />
+
         <Scorecard type="ROAS" />
-        <Scorecard type="Account conversie" value={dashboardData.accountConversion ?? 0} percentage={dashboardData.accountConversionPercentageChange} format="percentage" />
-        <Scorecard type="Actieve leerlingen" value={dashboardData.activeStudents} format="number" />
+
+        <Scorecard 
+        type="Account conversie" 
+        value={dashboardData.accountConversion ?? 0} 
+        percentage={dashboardData.accountConversionPercentageChange} 
+        format="percentage" 
+        />
+
+        <Scorecard 
+        type="Actieve leerlingen" 
+        value={dashboardData.activeStudents} 
+        format="number" 
+        />
       </div>
 
       {/* Grafieken */}
@@ -46,7 +64,7 @@ const AdminPage = async ({ searchParams }: AdminPageProps) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminPage
+export default AdminPage;

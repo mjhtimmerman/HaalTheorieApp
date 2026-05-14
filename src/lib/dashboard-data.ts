@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { getSupabaseClient } from "./supabase";
 
 type DashboardRange = "week" | "month" | "year";
 
@@ -63,7 +63,27 @@ function isBeforeDate(dateString: string, compareDate: Date) {
   return getDateString(dateString) < getDateKey(compareDate);
 }
 
+const emptyDashboardData = {
+  totalRevenue: 0,
+  previousRevenue: 0,
+  revenuePercentageChange: null,
+  activeStudents: 0,
+  accountConversion: null,
+  accountConversionPercentageChange: null,
+  revenueChartData: [],
+};
+
 export async function getDashboardData(range: DashboardRange = "week") {
+    let supabase;
+
+  try {
+    supabase = getSupabaseClient();
+  } catch (error) {
+    console.error("Error loading Supabase config:", error);
+
+    return emptyDashboardData;
+  }
+
   const now = new Date();
   const startDate = getStartDate(range);
   const previousStartDate = new Date(startDate);
@@ -89,24 +109,16 @@ export async function getDashboardData(range: DashboardRange = "week") {
   if (error) {
     console.error("Error loading dashboard data:", error);
 
-    return {
-      totalRevenue: 0,
-      previousRevenue: 0,
-      revenuePercentageChange: null,
-      activeStudents: 0,
-      accountConversion: null,
-      accountConversionPercentageChange: null,
-      revenueChartData: [],
-    };
+    return emptyDashboardData;
   }
 
-const todayKey = new Date().toISOString().slice(0, 10);
+  const todayKey = new Date().toISOString().slice(0, 10);
 
-const { data: activePurchases, error: activeStudentsError } = await supabase
-  .from("purchases")
-  .select("expires_at, is_free")
-  .eq("is_free", false)
-  .gte("expires_at", `${todayKey}T00:00:00.000Z`);
+  const { data: activePurchases, error: activeStudentsError } = await supabase
+    .from("purchases")
+    .select("expires_at, is_free")
+    .eq("is_free", false)
+    .gte("expires_at", `${todayKey}T00:00:00.000Z`);
 
   if (activeStudentsError) {
     console.error("Error loading active students:", activeStudentsError);
@@ -124,7 +136,7 @@ const { data: activePurchases, error: activeStudentsError } = await supabase
   const activeStudents = activePurchases?.length ?? 0;
 
   const paidPurchases = (purchases as Purchase[]).filter(
-    (purchase) => !purchase.is_free
+    (purchase) => !purchase.is_free,
   );
 
   const usersList = (users as User[]) ?? [];
@@ -152,17 +164,17 @@ const { data: activePurchases, error: activeStudentsError } = await supabase
   });
 
   const currentPeriodUserIds = new Set(
-    currentPeriodUsers.map((user) => user.lw_id)
+    currentPeriodUsers.map((user) => user.lw_id),
   );
 
   const previousPeriodUserIds = new Set(
-    previousPeriodUsers.map((user) => user.lw_id)
+    previousPeriodUsers.map((user) => user.lw_id),
   );
 
   const currentUniquePaidUsers = new Set(
     currentPeriodPurchases
       .filter((purchase) => currentPeriodUserIds.has(purchase.lw_id))
-      .map((purchase) => purchase.lw_id)
+      .map((purchase) => purchase.lw_id),
   );
 
   const previousUniquePaidUsers = new Set(
@@ -208,8 +220,7 @@ const { data: activePurchases, error: activeStudentsError } = await supabase
   currentPeriodPurchases.forEach((purchase) => {
     const key = getDateKey(new Date(purchase.started_at));
 
-    revenueByDay[key] =
-      (revenueByDay[key] || 0) + Number(purchase.price || 0);
+    revenueByDay[key] =(revenueByDay[key] || 0) + Number(purchase.price || 0);
   });
 
   const revenueChartData = [];
