@@ -22,7 +22,7 @@ const Navbar = () => {
 
           {/* Groot scherm */}
           <Image
-            src="/logoht.png"
+            src="/logo ht.png"
             alt="HaalTheorie logo"
             width={190}
             height={32}

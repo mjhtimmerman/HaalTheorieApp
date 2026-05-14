@@ -27,9 +27,8 @@ const UserPage = () => {
       {/* Grafieken */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full pb-3">
         <div className="lg:col-span-6 min-w-0">
-          <UitgaveOmzet />
+          <UitgaveOmzet data={[]} />        
         </div>
-
         <div className="lg:col-span-3 min-w-0">
           <SocialFunnel />
         </div>

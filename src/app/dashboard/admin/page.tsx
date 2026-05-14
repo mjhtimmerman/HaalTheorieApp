@@ -2,32 +2,39 @@ import Scorecard from "@/components/Scorecard"
 import TrafficSplit from "@/components/TrafficSplit"
 import UitgaveOmzet from "@/components/UitgaveOmzet"
 import SocialFunnel from "@/components/SocialFunnel"
+import { getDashboardData } from "@/lib/dashboard-data"
+import TimeSelector from "@/components/TimeSelector"
 
-const AdminPage = () => {
+type DashboardRange = "week" | "month" | "year"
+
+type AdminPageProps = {
+  searchParams: {
+    range?: DashboardRange;
+  };
+};
+
+const AdminPage = async ({ searchParams }: AdminPageProps) => {
+  const params = await searchParams
+  const activeRange = params.range ?? "week";
+  const dashboardData = await getDashboardData(activeRange);
+
   return (
     <div className="p-4 flex gap-4 flex-col overflow-x-hidden overflow-y-visible">
 
-            {/* Time selector */}
-      <div className="flex justify-begin">
-        <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm">
-          <button className="px-4 py-2 rounded-lg bg-[#91579A] text-white text-sm font-medium">Deze week</button>
-          <button className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">Deze maand</button>
-          <button className="px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">Dit jaar</button>
-        </div>
-      </div>
+      <TimeSelector activeRange={activeRange} />
 
       {/* Scorecards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 w-full">
-        <Scorecard type="Omzet" />
+        <Scorecard type="Omzet" value={dashboardData.totalRevenue} percentage={dashboardData.revenuePercentageChange}/>
         <Scorecard type="ROAS" />
-        <Scorecard type="Conversie" />
-        <Scorecard type="Actieve leerlingen" />
+        <Scorecard type="Account conversie" value={dashboardData.accountConversion ?? 0} percentage={dashboardData.accountConversionPercentageChange} format="percentage" />
+        <Scorecard type="Actieve leerlingen" value={dashboardData.activeStudents} format="number" />
       </div>
 
       {/* Grafieken */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 w-full pb-3">
         <div className="lg:col-span-6 min-w-0">
-          <UitgaveOmzet />
+          <UitgaveOmzet data={dashboardData.revenueChartData} />
         </div>
 
         <div className="lg:col-span-3 min-w-0">
